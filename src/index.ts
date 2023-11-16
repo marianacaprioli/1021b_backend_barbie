@@ -1,4 +1,5 @@
 import express from 'express'
+import SalvaFilme
 const app = express()
 app.use(express.json())
 import ListaFilme from './aplicacao/lista-filme.use-case'
@@ -21,6 +22,18 @@ app.post('/filmes',(req,res)=>{
     //Como eu salvo o filme que foi cadastrado no meu vetor de filmes (Banco de dados)
     filmesCadastros.push(filme)
     res.status(201).send(filme)
+})
+app.post('/filmes',async(req,res)=>{
+    const {id,titulo,descricao,imagem} = req.body
+    const filme = {
+        id,
+        titulo,
+        descricao,
+        imagem
+    }
+    const SalvaFilmes = new SalvaFilme(BancoMongoDB)
+    const repositorio = await SalvaFilmes.execute(filme)
+    res.send(repositorio)
 })
 
 app.get('/filmes/:id',(req,res)=>{
