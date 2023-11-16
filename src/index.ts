@@ -33,7 +33,7 @@ app.post('/filmes',async(req,res)=>{
     }
     const SalvaFilmes = new SalvaFilme(BancoMongoDB)
     const repositorio = await SalvaFilmes.execute(filme)
-    res.send(repositorio)
+    res.status(201).send(filme)
 })
 
 app.get('/filmes/:id',(req,res)=>{
