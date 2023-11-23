@@ -1,23 +1,20 @@
-import BancoMongoDB from './infra/banco/banco-mongodb'
-import ListaFilme from './aplicacao/lista-filme.use-case'
 import express from 'express'
-import SalvaFilme from './aplicacao/salva-filme.use-case'
 import cors from 'cors'
-const bancoMongoDB = new BancoMongoDB()
+//npm install cors --save
 const app = express()
 app.use(express.json())
 app.use(cors())
-//Tenho que ter uma rota post para cadastrar um filme
-
-//Salvar em algum lugar o filme que foi cadastrado.
-type Filme = {
-    id:number,
-    titulo:string,
-    descricao:string,
-    imagem:string
-}
-let filmesCadastros:Filme[] = []
-app.post('/filmes',(req,res)=>{
+import ListaFilme from './aplicacao/lista-filme.use-case'
+import BancoMongoDB from './infra/banco/banco-mongodb'
+import SalvaFilme from './aplicacao/salva-filme.use-case'
+const bancoMongoDB = new BancoMongoDB()
+app.get('/filmes',async (req,res)=>{
+    //usem o listarFilme Usecase para listar os filmes
+    const listaFilme = new ListaFilme(bancoMongoDB)
+    const filmes = await listaFilme.executar()
+    res.send(filmes)
+})
+app.post('/filmes',async (req,res)=>{
     const {id,titulo,descricao,imagem} = req.body
     const filme = {
         id,
@@ -26,15 +23,15 @@ app.post('/filmes',(req,res)=>{
         imagem
     }
     //Como eu salvo o filme que foi cadastrado no meu vetor de filmes (Banco de dados)
-    filmesCadastros.push(filme)
+    const salvaFilme = new SalvaFilme(bancoMongoDB)
+    const resposta = await salvaFilme.execute(filme)
     res.status(201).send(filme)
+    // try{
+    // }catch(error){
+    //     res.status(400).send({"mensagem":"Erro ao cadastrar o filme"})
+    // }
 })
-app.get('/filmes',async(req,res)=>{
-    const bancoMongoDB = new BancoMongoDB()
-    const listarFilme = new ListaFilme(bancoMongoDB)
-    const filmes = await listarFilme.executar()
-    res.send(filmes)
-})
+
 
 app.get('/filmes/:id',(req,res)=>{
     const id = parseInt(req.params.id)
@@ -44,20 +41,22 @@ app.get('/filmes/:id',(req,res)=>{
     res.status(200).send(filme)
 })
 
-app.post('/filmes',async(req,res)=>{
-    const {id,titulo,descricao,imagem} = req.body
-    const filme = {
-        id,
-        titulo,
-        descricao,
-        imagem
-    }
-    const SalvaFilmes = new SalvaFilme(bancoMongoDB)
-    const resposta = await SalvaFilmes.execute(filme)
-    res.send(200).send(filme)
-})
 
 //Tenho que iniciar o servidor na porta 3000
 app.listen(3000,()=>{
     console.log('Servidor rodando na porta 3000')
 })
+
+
+//Tenho que ter uma rota post para cadastrar um filme
+
+
+//Salvar em algum lugar o filme que foi cadastrado.
+type Filme = {
+    id:number,
+    titulo:string,
+    descricao:string,
+    imagem:string
+}
+let filmesCadastros:Filme[] = []
+
